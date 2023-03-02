@@ -1,8 +1,8 @@
-import './App.css';
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { ChatClient } from './chat-client';
+import "./App.css";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { ChatClient } from "./chat-client";
 
-const URL = '';
+const URL = "wss://d39ibm1rg6.execute-api.us-east-2.amazonaws.com/production/";
 
 const App = () => {
   const socket = useRef<WebSocket | null>(null);
@@ -13,10 +13,9 @@ const App = () => {
 
   const onSocketOpen = useCallback(() => {
     setIsConnected(true);
-    name = prompt('Informe o seu nome:');
+    name = prompt("Informe o seu nome:");
     if (name !== null && name !== "") {
-      
-      socket.current?.send(JSON.stringify({ action: 'setName', name }));
+      socket.current?.send(JSON.stringify({ action: "setName", name }));
     }
   }, []);
 
@@ -31,20 +30,30 @@ const App = () => {
     if (data.members) {
       setMembers(data.members);
     } else if (data.publicMessage) {
-      setChatRows(oldArray => [...oldArray, <span><b>{data.publicMessage}</b></span>]);
+      setChatRows((oldArray) => [
+        ...oldArray,
+        <span>
+          <b>{data.publicMessage}</b>
+        </span>,
+      ]);
     } else if (data.privateMessage) {
       alert(data.privateMessage);
     } else if (data.systemMessage) {
-      setChatRows(oldArray => [...oldArray, <span><i>{data.systemMessage}</i></span>]);
+      setChatRows((oldArray) => [
+        ...oldArray,
+        <span>
+          <i>{data.systemMessage}</i>
+        </span>,
+      ]);
     }
   }, []);
 
   const onConnect = useCallback(() => {
     if (socket.current?.readyState !== WebSocket.OPEN) {
       socket.current = new WebSocket(URL);
-      socket.current.addEventListener('open', onSocketOpen);
-      socket.current.addEventListener('close', onSocketClose);
-      socket.current.addEventListener('message', (event) => {
+      socket.current.addEventListener("open", onSocketOpen);
+      socket.current.addEventListener("close", onSocketClose);
+      socket.current.addEventListener("message", (event) => {
         onSocketMessage(event.data);
       });
     }
@@ -57,35 +66,41 @@ const App = () => {
   }, []);
 
   const onSendPrivateMessage = useCallback((to: string) => {
-    const message = prompt('Mensagem privada para: ' + to);
+    const message = prompt("Mensagem privada para: " + to);
     if (message !== null && message !== "" && to !== name) {
-      socket.current?.send(JSON.stringify({
-        action: 'sendPrivate',
-        message,
-        to,
-      }));
+      socket.current?.send(
+        JSON.stringify({
+          action: "sendPrivate",
+          message,
+          to,
+        })
+      );
     }
   }, []);
 
   const onSendPublicMessage = useCallback(() => {
-    const message = prompt('Mensagem pública');
+    const message = prompt("Mensagem pública");
     if (message !== null && message !== "") {
-      socket.current?.send(JSON.stringify({
-        action: 'sendPublic',
-        message,
-      }));
+      socket.current?.send(
+        JSON.stringify({
+          action: "sendPublic",
+          message,
+        })
+      );
     }
   }, []);
 
-  const onSendBotMessage = useCallback(() => { 
-    const message = prompt('Mensagem  para BOT ');
+  const onSendBotMessage = useCallback(() => {
+    const message = prompt("Mensagem  para BOT ");
     if (message !== null && message !== "") {
-      socket.current?.send(JSON.stringify({
-        action: 'sendBot',
-        message
-      }));
+      socket.current?.send(
+        JSON.stringify({
+          action: "sendBot",
+          message,
+        })
+      );
     }
-   }, []);
+  }, []);
 
   const onDisconnect = useCallback(() => {
     if (isConnected) {
@@ -93,16 +108,18 @@ const App = () => {
     }
   }, [isConnected]);
 
-  return <ChatClient
-    isConnected={isConnected}
-    members={members}
-    chatRows={chatRows}
-    onPublicMessage={onSendPublicMessage}
-    onPrivateMessage={onSendPrivateMessage}
-    onBotMessage={onSendBotMessage}
-    onConnect={onConnect}
-    onDisconnect={onDisconnect}
-  />;
-}
+  return (
+    <ChatClient
+      isConnected={isConnected}
+      members={members}
+      chatRows={chatRows}
+      onPublicMessage={onSendPublicMessage}
+      onPrivateMessage={onSendPrivateMessage}
+      onBotMessage={onSendBotMessage}
+      onConnect={onConnect}
+      onDisconnect={onDisconnect}
+    />
+  );
+};
 
 export default App;
